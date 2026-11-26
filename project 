@@ -1,0 +1,271 @@
+/* MOVIE TICKET BOOKING SYSTEM */
+#include <stdio.h>
+
+struct Ticket
+{
+    int movie;
+    int seat;
+    int booked;
+};
+
+void loadFile(struct Ticket t[4][10])
+{
+    FILE *fp;
+    int m, s;
+
+    fp = fopen("bookings.txt", "r");
+
+    if(fp != NULL)
+    {
+        while(fscanf(fp, "%d %d", &m, &s) == 2)
+
+        {
+            if(m >= 1 && m <= 4 && s >= 1 && s <= 10)
+                t[m - 1][s - 1].booked = 1;
+        }
+
+        fclose(fp);
+    }
+}
+
+void saveFile(struct Ticket t[4][10])
+{
+    FILE *fp = fopen("bookings.txt", "w");
+
+    if(fp == NULL)
+    {
+        printf("File error!\n");
+        return;
+    }
+
+    for(int i = 0; i < 4; i++)
+    {
+        for(int j = 0; j < 10; j++)
+        {
+            if(t[i][j].booked == 1)
+                fprintf(fp, "%d %d\n", i + 1, j + 1);
+        }
+    }
+
+    fclose(fp);
+}
+
+void bookTicket(struct Ticket t[4][10])
+{
+    int m, s, count;
+    int available = 0;
+    int booked = 0;
+
+    printf("\n1. Leo\n2. Ramayanam\n3. Jailer-2\n4. Scene\n");
+    printf("Select the movie: ");
+
+    if(scanf("%d", &m) != 1)
+    {
+        printf("Invalid input!\n");
+        return;
+    }
+
+    if(m < 1 || m > 4)
+    {
+        printf("Invalid movie!\n");
+        return;
+    }
+
+    for(int i = 0; i < 10; i++)
+    {
+        if(t[m - 1][i].booked == 0)
+            available++;
+    }
+
+    printf("How many seats do you want? ");
+
+    if(scanf("%d", &count) != 1)
+    {
+        printf("Invalid input!\n");
+        return;
+    }
+
+    if(count < 1 || count > available)
+    {
+        printf("Invalid number of seats. Available seats: %d\n", available);
+        return;
+    }
+
+    while(booked < count)
+    {
+        printf("Enter seat number (1-10): ");
+
+        if(scanf("%d", &s) != 1)
+        {
+            printf("Invalid input!\n");
+            return;
+        }
+
+        if(s < 1 || s > 10)
+        {
+            printf("Invalid seat number. Try again.\n");
+        }
+        else if(t[m - 1][s - 1].booked == 1)
+        {
+            printf("Seat %d is already booked. Choose another.\n", s);
+        }
+        else
+        {
+            t[m - 1][s - 1].movie = m;
+            t[m - 1][s - 1].seat = s;
+            t[m - 1][s - 1].booked = 1;
+
+            booked++;
+            printf("Booked movie %d, seat %d\n", m, s);
+        }
+    }
+
+    saveFile(t);
+
+    printf("\n------- TICKETS -------\n");
+    printf("%d ticket(s) booked successfully!\n", count);
+    printf("Movie: %d\n", m);
+    printf("Total price: Rs.%d\n", count * 140);
+}
+
+void cancelTicket(struct Ticket t[4][10])
+{
+    int m, s;
+
+    printf("Enter movie number (1-4): ");
+    scanf("%d", &m);
+
+    if(m < 1 || m > 4)
+    {
+        printf("Invalid movie!\n");
+        return;
+    }
+
+    printf("Enter seat number (1-10): ");
+    scanf("%d", &s);
+
+    if(s < 1 || s > 10)
+    {
+        printf("Invalid seat!\n");
+    }
+    else if(t[m - 1][s - 1].booked == 0)
+    {
+        printf("No booking is found!\n");
+    }
+    else
+    {
+        t[m - 1][s - 1].booked = 0;
+        saveFile(t);
+        printf("Ticket cancelled successfully!\n");
+    }
+}
+
+void checkSeats(struct Ticket t[4][10])
+{
+    int m;
+
+    printf("Enter movie number (1-4): ");
+    scanf("%d", &m);
+
+    if(m < 1 || m > 4)
+    {
+        printf("Invalid movie!\n");
+        return;
+    }
+
+    printf("\nSeat Availability:\n");
+
+    for(int i = 0; i < 10; i++)
+    {
+        if(t[m - 1][i].booked == 0)
+            printf("Seat %d - Available\n", i + 1);
+        else
+            printf("Seat %d - Booked\n", i + 1);
+    }
+}
+
+void viewBookings(struct Ticket t[4][10])
+{
+    int found = 0;
+
+    printf("\n------- BOOKING DETAILS -------\n");
+
+    for(int i = 0; i < 4; i++)
+    {
+        for(int j = 0; j < 10; j++)
+        {
+            if(t[i][j].booked == 1)
+            {
+                printf("Movie: %d, Seat: %d\n", i + 1, j + 1);
+                found = 1;
+            }
+        }
+    }
+
+    if(found == 0)
+        printf("No bookings available!\n");
+}
+
+int main()
+{
+    struct Ticket t[4][10];
+    int choice;
+
+    for(int i = 0; i < 4; i++)
+    {
+        for(int j = 0; j < 10; j++)
+        {
+            t[i][j].movie = i + 1;
+            t[i][j].seat = j + 1;
+            t[i][j].booked = 0;
+        }
+    }
+
+    loadFile(t);
+
+    do
+    {
+        printf("\n************ MOVIE TICKET BOOKING SYSTEM ************\n");
+        printf("1. Book tickets\n");
+        printf("2. Cancel a ticket\n");
+        printf("3. Check seat availability\n");
+        printf("4. View bookings\n");
+        printf("5. Exit\n");
+        printf("Enter your choice: ");
+
+        if(scanf("%d", &choice) != 1)
+        {
+            printf("Invalid input!\n");
+            return 1;
+        }
+
+        switch(choice)
+        {
+            case 1:
+                bookTicket(t);
+                break;
+
+            case 2:
+                cancelTicket(t);
+                break;
+
+            case 3:
+                checkSeats(t);
+                break;
+
+            case 4:
+                viewBookings(t);
+                break;
+
+            case 5:
+                printf("Thank you!\n");
+                break;
+
+            default:
+                printf("Invalid choice!\n");
+        }
+
+    } while(choice != 5);
+
+    return 0;
+}
